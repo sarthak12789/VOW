@@ -173,7 +173,6 @@ const userPanningRef = useRef(false);
         }
       }
 
-      
       positionRef.current = { x: newX, y: newY };
       velocityRef.current = { vx, vy };
       setPosition(positionRef.current);
