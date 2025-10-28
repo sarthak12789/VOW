@@ -1,10 +1,10 @@
-// TableStructure.jsx (recreated to use a single image with a collision box)
+// BigTableStructure.jsx (single image with a collision box)
 import React, { useEffect, useRef } from "react";
-import small_room from "../map assets/small room.svg";
+import bigtable from "../map assets/big table.svg";
 
 const DEFAULT_TABLE_POSITION = Object.freeze({ x: 25, y: 25 });
-const TableStructure = ({
-  id = "table",
+const BigTableStructure = ({
+  id = "bigtable",
   onObstaclesReady,
   position,
   containerRef,
@@ -13,7 +13,7 @@ const TableStructure = ({
   imageHeight,    // optional height (px)
 }) => {
   const tableRef = useRef(null);
-  const smallRoomRef = useRef(null);
+  const bigTableRef = useRef(null);
   const tablePosition = position ?? DEFAULT_TABLE_POSITION;
 
   const notifyObstacles = onObstaclesReady;
@@ -43,25 +43,25 @@ const TableStructure = ({
         // Start with no obstacles from legacy rectangles; we only use the image bounds now.
         const obstacles = [];
 
-        // Also add a collision box for the small room SVG, measured from its DOM box
-        const roomEl = smallRoomRef.current;
-        if (roomEl) {
+        // Also add a collision box for the big table SVG, measured from its DOM box
+        const tableEl = bigTableRef.current;
+        if (tableEl) {
           const containerRect = container.getBoundingClientRect();
-          const roomRect = roomEl.getBoundingClientRect();
-          if (roomRect.width > 0 && roomRect.height > 0) {
+          const tableRect = tableEl.getBoundingClientRect();
+          if (tableRect.width > 0 && tableRect.height > 0) {
             // Adjust for world scale: convert measured (scaled) px back to unscaled px
             const scaleX = containerRect.width / containerWidth;
             const scaleY = containerRect.height / containerHeight;
-            const centerXpx = (roomRect.left - containerRect.left + roomRect.width / 2) / (scaleX || 1);
-            const centerYpx = (roomRect.top - containerRect.top + roomRect.height / 2) / (scaleY || 1);
-            const widthPx = roomRect.width / (scaleX || 1);
-            const heightPx = roomRect.height / (scaleY || 1);
+            const centerXpx = (tableRect.left - containerRect.left + tableRect.width / 2) / (scaleX || 1);
+            const centerYpx = (tableRect.top - containerRect.top + tableRect.height / 2) / (scaleY || 1);
+            const widthPx = tableRect.width / (scaleX || 1);
+            const heightPx = tableRect.height / (scaleY || 1);
             const xPercent = (centerXpx / containerWidth) * 100;
             const yPercent = (centerYpx / containerHeight) * 100;
             const widthPercent = (widthPx / containerWidth) * 100;
             const heightPercent = (heightPx / containerHeight) * 100;
             obstacles.push({
-              id: `${id}-small-room`,
+              id: `${id}-big-table`,
               x: xPercent,
               y: yPercent,
               width: widthPercent-3,
@@ -89,7 +89,7 @@ const TableStructure = ({
   return (
     <div
       ref={tableRef}
-      className="absolute  border-2 border-dashed border-[#385D99]"
+      className="absolute border-2 border-dashed border-[#385D99]"
       style={{
         width: "400px",
         height: "620px",
@@ -100,8 +100,8 @@ const TableStructure = ({
     >
       {/* Single image representing the structure; its bounds are used as the collision box */}
       <img
-        ref={smallRoomRef}
-        src={small_room}
+        ref={bigTableRef}
+        src={bigtable}
         alt=""
         className="absolute pointer-events-none select-none top-1/2 left-1/2"
         style={{
@@ -114,4 +114,4 @@ const TableStructure = ({
   );
 };
 
-export default TableStructure;
+export default BigTableStructure;
