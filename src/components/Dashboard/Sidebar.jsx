@@ -8,6 +8,7 @@ import createIcon from "../../assets/dashcreate.svg";
 import helpIcon from "../../assets/dashhelp.svg";
 import contactIcon from "../../assets/dashphone.svg";
 import userIcon from "../../assets/dashuser.svg";
+import { useSelector } from "react-redux";
 
 const Sidebar = ({ activeSection, setActiveSection }) => {
   const menuItems = [
@@ -17,8 +18,9 @@ const Sidebar = ({ activeSection, setActiveSection }) => {
     { id: "events", label: "Meeting", icon: eventsIcon },
     { id: "enterWorkspace", label: "Enter Workspace", icon: workspaceIcon },
     { id: "createWorkspace", label: "Create Workspace", icon: createIcon },
+    {id: "create team", label: "Create Team", icon: createIcon}
   ];
-
+ const { fullName, email, avatar } = useSelector((state) => state.user);
   return (
     <aside className="w-[320px] h-[820px] bg-[#240A44] text-white flex flex-col p-6">
       <div className="flex-1">
@@ -29,10 +31,10 @@ const Sidebar = ({ activeSection, setActiveSection }) => {
 
         <div className="bg-[#EFE7F6] p-3 rounded-xl mb-10 h-[55px]">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-[#5E9BFF] rounded-full"></div>
+            <img src={avatar ? avatar : userIcon} alt="Avatar" className="w-8 h-8 rounded-full" />
             <div>
-              <p className="font-semibold text-[#0E1219] text-sm">Fullname</p>
-              <p className="text-xs text-[#47505B]">abcd4321@xyz.ac.in</p>
+              <p className="font-semibold text-[#0E1219] text-sm">{fullName || "Guest"}</p>
+              <p className="text-xs text-[#47505B]">{email || "No Email"}</p>
             </div>
           </div>
         </div>

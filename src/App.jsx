@@ -12,20 +12,20 @@ import ForgotPassword from "./components/forgotpassword";
 import VerifyOtp from "./pages/verifyotp";
 import ResetPassword from "./pages/resetpassword";
 import ResetSuccess from "./pages/resetsuccess";
-import Dashboard from "./components/Dashboard/dashboard"; 
+import Dashboard from "../src/components/dashboard/dashboard.jsx";
 import ProfilePage from "./pages/profile/ProfilePage";
 import Map from "./components/map/Map";
 import ChatApp from "./components/chat/chat";
 import FileTester from "./pages/fileapitester";
 import TermsAndConditions from "./components/terms and conditions";
-
+import Join from "../src/components/dashboard/join.jsx"
 
 const App = () => {
   const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
-  const signupDoneRaw = !!localStorage.getItem("signupDone");
+  const signupDone = !!localStorage.getItem("signupDone");
   const forgotRequested = !!localStorage.getItem("forgotRequested");
 
-  const signupDone = isLoggedIn && !forgotRequested ? false : signupDoneRaw;
+  
 
   const verifyCondition = !isLoggedIn || (signupDone || forgotRequested);
   const verifyRedirectTo = isLoggedIn
@@ -43,8 +43,8 @@ const App = () => {
         <Route path="/signup" element={<Signup />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/TermsAndConditions" element={<TermsAndConditions />} />
-        <Route path="/filetester" element={<FileTester />} />
-
+       
+        <Route path="/join" element={<Join />} />
         <Route
           path="/verify-otp"
           element={
@@ -112,8 +112,19 @@ const App = () => {
             </ProtectedRoute>
           }
         />
-
-        <Route path="/chat" element={<ChatApp username="UserB" roomId="room1" />} />
+        <Route
+          path="/chat"
+          element={
+              <ChatApp username="UserB"  />
+          }
+        />
+        <Route
+          path="/"
+          element={
+            
+              <Home />
+          }
+        />
       </Routes>
     </Router>
   );
