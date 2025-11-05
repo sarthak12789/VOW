@@ -12,13 +12,13 @@ import ForgotPassword from "./components/forgotpassword";
 import VerifyOtp from "./pages/verifyotp";
 import ResetPassword from "./pages/resetpassword";
 import ResetSuccess from "./pages/resetsuccess";
-import Dashboard from "../src/components/Dashboard/dashboard.jsx";
+import Dashboard from "../src/components/dashboard/dashboard.jsx";
 import ProfilePage from "./pages/profile/ProfilePage";
 import Map from "./components/map/Map";
 import ChatApp from "./components/chat/chat";
 import FileTester from "./pages/fileapitester";
 import TermsAndConditions from "./components/terms and conditions";
-import Join from "../src/components/dashboard/join.jsx"
+import Join from "./components/dashboard/join.jsx"
 
 const App = () => {
   const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
@@ -112,12 +112,7 @@ const App = () => {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/chat"
-          element={
-              <ChatApp username="UserB"  />
-          }
-        />
+        <Route path="/workspace/:workspaceId/chat" element={<ChatApp/>} />
         <Route
           path="/"
           element={
