@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import MessageReactions from "./rection.jsx";
 
-const MessageList = ({ messages, username }) => {
+const MessageList = ({ messages, username, currentUserId, onDeleteMessage }) => {
   const bottomRef = useRef(null);
   const [messageReactions, setMessageReactions] = useState({});
+  const [menuState, setMenuState] = useState({ open: false, x: 0, y: 0, messageId: null });
 
   useEffect(() => {
     if (bottomRef.current)
@@ -38,9 +39,22 @@ const MessageList = ({ messages, username }) => {
       {messages.map((msg, index) => {
         const isSentByUser = msg.sender === username;
         const reactions = messageReactions[index] || [];
+        const allowDelete = currentUserId && (msg.sender?._id === currentUserId);
 
         return (
-         <div key={msg._id || index} className="flex w-full group">
+         <div
+           key={msg._id || index}
+           className="flex w-full group relative"
+           onContextMenu={(e) => {
+             e.preventDefault();
+             if (!allowDelete || !msg._id) return; // Only show for own messages with id
+             // Position menu within viewport
+             const rect = e.currentTarget.getBoundingClientRect();
+             const x = e.clientX - rect.left;
+             const y = e.clientY - rect.top;
+             setMenuState({ open: true, x, y, messageId: msg._id });
+           }}
+         >
   <div
     className={`flex items-start space-x-3 w-full ${
       isSentByUser ? "flex-row space-x-reverse" : ""
@@ -135,6 +149,27 @@ const MessageList = ({ messages, username }) => {
           </div>
         )}
       </MessageReactions>
+      {menuState.open && menuState.messageId === (msg._id) && (
+        <div
+          className="absolute z-20 bg-white border border-[#D1D5DB] rounded-md shadow-md text-sm min-w-[110px]"
+          style={{ top: menuState.y, left: menuState.x }}
+        >
+          <button
+            type="button"
+            className="w-full text-left px-3 py-2 hover:bg-red-50 text-red-600"
+            onClick={() => {
+              const id = menuState.messageId;
+              setMenuState(s => ({ ...s, open: false }));
+              if (onDeleteMessage && id) onDeleteMessage(id);
+            }}
+          >Delete</button>
+          <button
+            type="button"
+            className="w-full text-left px-3 py-2 hover:bg-gray-50"
+            onClick={() => setMenuState(s => ({ ...s, open: false }))}
+          >Cancel</button>
+        </div>
+      )}
     </div>
   </div>
 </div>
@@ -142,6 +177,12 @@ const MessageList = ({ messages, username }) => {
       })}
 
       <div ref={bottomRef} />
+      {menuState.open && (
+        <div
+          className="fixed inset-0 z-10"
+          onClick={() => setMenuState(s => ({ ...s, open: false }))}
+        />
+      )}
     </div>
   );
 };

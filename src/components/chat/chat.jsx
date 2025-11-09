@@ -2,9 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useSelector } from "react-redux";
 import MessageList from "../chat/message.jsx";
 import Sidebar from "../chat/sidebar.jsx";
-import { sendMessageToChannel } from "../../api/authApi.js";
-import { fetchChannelMessages } from "../../api/authApi.js";
-import { getWorkspaceForUsers } from "../../api/authApi.js";
+import { sendMessageToChannel, fetchChannelMessages, getWorkspaceForUsers, getChannels, deleteMessageById } from "../../api/authApi.js";
 import InputBox from "../chat/input.jsx";
 import Header from "../chat/header.jsx";
 import InfoBar from "../chat/infobar.jsx";
@@ -32,6 +30,26 @@ const Chat = ({ username, roomId, remoteUserId }) => {
   const textareaRef = useRef(null);
   const mainRef = useRef(null);
   const profile = useSelector((state) => state.user.profile);
+  const workspaceId = useSelector((state) => state.user.workspaceId);
+  const [channelNames, setChannelNames] = useState({});
+  // Fetch channels once per workspace to map id->name for InfoBar display
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      if (!workspaceId) return;
+      try {
+        const res = await getChannels(workspaceId);
+        const list = Array.isArray(res?.data) ? res.data : (res?.data?.channels || []);
+        const map = {};
+        list.forEach(ch => { if (ch?._id) map[ch._id] = ch.name || ch._id; });
+        if (!cancelled) setChannelNames(map);
+      } catch (e) {
+        console.warn('[chat] getChannels failed', e?.response?.data || e?.message || e);
+      }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, [workspaceId]);
 
   const handleEmojiSelect = useCallback(
     (selectedEmoji) => setMessageInput((prev) => prev + selectedEmoji),
@@ -280,8 +298,21 @@ const [showTeamBuilder, setShowTeamBuilder] = useState(false);
           {!showMap && !showTeamBuilder && !showMeeting && !showVideoConference && (
             <div className="flex flex-col h-full">
               <div className="relative flex-1 overflow-y-auto space-y-4 scrollbar-hide">
-                <InfoBar onSearchChange={setSearchQuery} channelName={activeRoomId || 'Channel'} memberCount={0} onlineCount={0} />
-                <MessageList messages={displayedMessages} username={username} />
+                <InfoBar onSearchChange={setSearchQuery} channelName={channelNames[activeRoomId] || 'Channel'} memberCount={0} onlineCount={0} />
+                <MessageList
+                  messages={displayedMessages}
+                  username={username}
+                  currentUserId={profile?._id || profile?.id}
+                  onDeleteMessage={async (messageId) => {
+                    if (!messageId) return;
+                    try {
+                      await deleteMessageById(messageId);
+                      setMessages(prev => prev.filter(m => (m._id || m.id) !== messageId));
+                    } catch (e) {
+                      console.error('Delete message failed', e?.response?.data || e?.message || e);
+                    }
+                  }}
+                />
               </div>
               <InputBox
                 messageInput={messageInput}

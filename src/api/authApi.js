@@ -74,6 +74,14 @@ export const fetchChannelMessages = (channelId) => {
   });
 };
 
+// Delete a message by id
+export const deleteMessageById = (messageId) => {
+  const token = localStorage.getItem("accessToken");
+  return api.delete(`/messages/message/${messageId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+};
+
 export const getChannels = async (workspaceId) => {
   return api.get(`/channels/workspace/${workspaceId}`);
 };

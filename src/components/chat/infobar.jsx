@@ -1,11 +1,36 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
+import { getChannels } from "../../api/authApi";
 import guser from "../../assets/guser.svg";
 import pin from "../../assets/pin.svg";
 import search from "../../assets/search.svg";
 import cross from "../../assets/cross.svg";
+// Displays channel name; if an ObjectId is passed and name map isn't available yet, attempts to resolve.
 const InfoBar = ({ channelName = 'Team 1', memberCount = 0, onlineCount = 0, onSearchChange }) => {
   const [showSearch, setShowSearch] = useState(false);
   const [query, setQuery] = useState("");
+  const [resolvedName, setResolvedName] = useState(channelName);
+  const workspaceId = useSelector(s => s.user.workspaceId);
+
+  useEffect(() => {
+    const looksLikeObjectId = /^[0-9a-fA-F]{24}$/.test(channelName);
+    if (!looksLikeObjectId) { setResolvedName(channelName); return; }
+    let cancelled = false;
+    const resolve = async () => {
+      if (!workspaceId) { setResolvedName(channelName); return; }
+      try {
+        const res = await getChannels(workspaceId);
+        const list = Array.isArray(res?.data) ? res.data : (res?.data?.channels || []);
+        const found = list.find(ch => ch._id === channelName);
+        if (!cancelled) setResolvedName(found?.name || channelName);
+      } catch (e) {
+        console.warn('[InfoBar] resolve channel name failed', e?.response?.data || e?.message || e);
+        if (!cancelled) setResolvedName(channelName);
+      }
+    };
+    resolve();
+    return () => { cancelled = true; };
+  }, [channelName, workspaceId]);
 
   const toggleSearch = () => {
     setShowSearch(s => !s);
@@ -27,22 +52,12 @@ const InfoBar = ({ channelName = 'Team 1', memberCount = 0, onlineCount = 0, onS
       <div className="sticky top-0 flex bg-gray-200 justify-between p-3 z-10">
         <div className="flex items-center">
           <p className="text-[26px] mr-2">#</p>
-          <p className="text-2xl pt-0.5 truncate max-w-40" title={channelName}>{channelName}</p>
+          <p className="text-2xl pt-0.5 truncate max-w-40" title={resolvedName}>{resolvedName}</p>
         </div>
-        <div className="flex items-center gap-3 text-sm md:text-base">
-          <img src={guser} alt="members" className="w-5 h-5" />
-          <p>{memberCount} members</p>
-          <p>{onlineCount} online</p>
-        </div>
+      
         <div className="flex items-center gap-5 mr-3">
-          <button type="button" className="w-5" title="Pinned">
-            <img src={pin} alt="pin" className="w-4" />
-          </button>
           <button type="button" onClick={toggleSearch} title="Search messages" className="w-5">
             <img src={search} alt="search" className="w-4" />
-          </button>
-          <button type="button" className="w-5" title="Close">
-            <img src={cross} alt="close" className="w-3" />
           </button>
         </div>
       </div>
