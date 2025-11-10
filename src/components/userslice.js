@@ -37,13 +37,29 @@ const userSlice = createSlice({
       state.workspaceId = workspaceId || null;
       state.workspaceToken = workspaceToken || null;
       state.workspaceName = workspaceName || null;
-      if (workspaceManagerId) state.workspaceManagerId = workspaceManagerId;
+      
+      // Also save to localStorage for file API consistency
+      try {
+        if (workspaceId) {
+          localStorage.setItem('workspaceId', workspaceId);
+        } else {
+          localStorage.removeItem('workspaceId');
+        }
+      } catch (error) {
+        console.warn('Could not save workspaceId to localStorage:', error);
+      }
     },
     clearWorkspaceContext: (state) => {
       state.workspaceId = null;
       state.workspaceToken = null;
       state.workspaceName = null;
-      state.workspaceManagerId = null;
+      
+      // Also clear from localStorage
+      try {
+        localStorage.removeItem('workspaceId');
+      } catch (error) {
+        console.warn('Could not clear workspaceId from localStorage:', error);
+      }
     },
     clearUser: (state) => {
       state.username = null;
