@@ -52,9 +52,8 @@ const InfoBar = ({ channelName = 'Team 1', memberCount = 0, onlineCount = 0, onS
       <div className="sticky top-0 flex bg-gray-200 justify-between p-3 z-10">
         <div className="flex items-center">
           <p className="text-[26px] mr-2">#</p>
-          <p className="text-2xl pt-0.5 truncate max-w-40" title={resolvedName}>{resolvedName}</p>
+          <p className="text-2xl pt-0.5 truncate max-w-40" title={channelName}>{channelName}</p>
         </div>
-      
         <div className="flex items-center gap-5 mr-3">
           <button type="button" onClick={toggleSearch} title="Search messages" className="w-5">
             <img src={search} alt="search" className="w-4" />

@@ -8,6 +8,7 @@ const initialState = {
   workspaceId: null,
   workspaceToken: null,
   workspaceName: null,
+  workspaceManagerId: null, // manager/owner id for current workspace
   // profile gating
   isProfileNeeded: false,
   signupDone: false,
@@ -32,7 +33,7 @@ const userSlice = createSlice({
       state.avatar = action.payload;
     },
     setWorkspaceContext: (state, action) => {
-      const { workspaceId, workspaceToken, workspaceName } = action.payload || {};
+      const { workspaceId, workspaceToken, workspaceName, workspaceManagerId } = action.payload || {};
       state.workspaceId = workspaceId || null;
       state.workspaceToken = workspaceToken || null;
       state.workspaceName = workspaceName || null;

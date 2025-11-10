@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useSelector } from "react-redux";
 import MessageList from "../chat/message.jsx";
 import Sidebar from "../chat/sidebar.jsx";
@@ -12,13 +12,15 @@ import ManagerMeeting from "../dashboard/Meeting/ManagerMeeting.jsx";
 import VideoConference from "./VideoConference.jsx";
 import { useVoiceCall } from "../voice/useVoiceCall.js";
 
-import socket, { SOCKET_URL } from "./socket.jsx";
+import { SOCKET_URL } from "./socket.jsx";
 import { createLayout } from "../../api/layoutApi.js";
+import ChatLayout from "./ChatLayout.jsx";
+import useChatRoom from "./hooks/useChatRoom.js";
+import useAutoResize from "./hooks/useAutoResize.js";
 
 const Chat = ({ username, roomId, remoteUserId }) => {
   const workspaceName = useSelector((state) => state.user.workspaceName);
   const [activeRoomId, setActiveRoomId] = useState(roomId || null);
-  const [messages, setMessages] = useState([]);
   const [messageInput, setMessageInput] = useState("");
   const [attachments, setAttachments] = useState([]);
   const [showMap, setShowMap] = useState(false);
@@ -26,7 +28,6 @@ const Chat = ({ username, roomId, remoteUserId }) => {
   const [showVideoConference, setShowVideoConference] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const layoutPostedRef = useRef(false);
-  const socketRef = useRef(socket);
   const textareaRef = useRef(null);
   const mainRef = useRef(null);
   const profile = useSelector((state) => state.user.profile);
@@ -125,19 +126,10 @@ const [showTeamBuilder, setShowTeamBuilder] = useState(false);
   };
 
   useEffect(() => {
-    if (roomId !== activeRoomId) {
-      setActiveRoomId(roomId);
-    }
+    if (roomId !== activeRoomId) setActiveRoomId(roomId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomId]);
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto";
-      textareaRef.current.style.height = `${Math.min(
-        textareaRef.current.scrollHeight,
-        160
-      )}px`;
-    }
-  }, [messageInput]);
+  useAutoResize(textareaRef, messageInput, 160);
 
    const handleCallClick = () => {
     if (remoteUserId) {
@@ -148,45 +140,10 @@ const [showTeamBuilder, setShowTeamBuilder] = useState(false);
   };
 
 
-  useEffect(() => {
-    const fetchMessages = async () => {
-      try {
-        console.log("Fetching for room:", activeRoomId);
-        const response = await fetchChannelMessages(activeRoomId);
-        // API may return raw array or wrapped object with .messages
-        const raw = Array.isArray(response?.data) ? response.data : response?.data?.messages;
-        console.log("Fetched messages (normalized):", raw);
-        setMessages(raw || []);
-      } catch (err) {
-        console.error("Failed to fetch messages:", err);
-      }
-    };
-    if (activeRoomId) {
-      fetchMessages();
-    } else {
-      setMessages([]);
-    }
-  }, [activeRoomId]);
-
-  useEffect(() => {
-    const s = socketRef.current;
-    if (!s) return;
-    if (activeRoomId) {
-      s.emit("joinRoom", activeRoomId);
-    }
-    const onMessage = (message) => setMessages((prev) => [...prev, message]);
-    s.on("message", onMessage);
-    return () => {
-      if (activeRoomId) {
-        s.emit("leaveRoom", activeRoomId);
-      }
-      s.off("message", onMessage);
-    };
-  }, [activeRoomId]);
+  const { messages, setMessages, send } = useChatRoom(activeRoomId, profile);
 
   const sendMessage = async () => {
     if (messageInput.trim() === "" && attachments.length === 0) return;
-
     // Attempt to call GET /workspace/{user1}/{user2} before sending a direct message
     try {
       const selfId = profile?._id || profile?.id || null;
@@ -205,37 +162,7 @@ const [showTeamBuilder, setShowTeamBuilder] = useState(false);
     } catch (e) {
       console.warn("/workspace/{user1}/{user2} call failed (non-blocking)", e?.response?.data || e?.message || e);
     }
-
-    const message = {
-      channelId: activeRoomId,
-      content: messageInput,
-      attachments: attachments,
-      sender: {
-        _id: profile?._id,
-        username: profile?.username,
-        avatar: profile?.avatar || "/default-avatar.png",
-      },
-      createdAt: new Date().toISOString(),
-    };
-
-    try {
-      socketRef.current.emit("message", message);
-
-      if (activeRoomId) {
-        await sendMessageToChannel(
-          activeRoomId,
-          message.content,
-          message.attachments
-        );
-      } else {
-        console.warn(
-          "No active channel selected. Message will not be saved to server."
-        );
-      }
-    } catch (err) {
-      console.error("Failed to send message:", err);
-    }
-
+    await send(activeRoomId, messageInput, attachments);
     setMessageInput("");
     setAttachments([]);
   };
@@ -251,16 +178,17 @@ const [showTeamBuilder, setShowTeamBuilder] = useState(false);
     : messages;
 
   return (
-    <div className="flex h-screen bg-[#F3F3F6] text-[#0E1219]">
-      <Sidebar
+    <ChatLayout
+      sidebar={<Sidebar
         onChannelSelect={setActiveRoomId}
         onCreateTeam={handleCreateTeamClick}
         onCreateMeeting={handleCreateMeetingClick}
         onVirtualSpaceClick={handleVirtualSpaceClick}
         onVideoConferenceClick={handleVideoConferenceClick}
         onChatClick={() => { setShowMap(false); setShowTeamBuilder(false); setShowMeeting(false); setShowVideoConference(false); }}
-      />
-      <main ref={mainRef} className="flex-1 flex flex-col relative">
+      />}
+    >
+  <main ref={mainRef} className="flex-1 flex flex-col relative h-full w-full min-w-0 min-h-0">
         {/* Dynamic Header */}
         <Header 
           title={
@@ -274,7 +202,7 @@ const [showTeamBuilder, setShowTeamBuilder] = useState(false);
         />
         
         {/* Content Area - Changes Based on Sidebar Selection */}
-        <div className="flex-1 relative overflow-hidden">
+  <div className="flex-1 relative overflow-hidden min-h-0 min-w-0">
           {showMap && (
             <div className="absolute inset-0 overflow-auto scrollbar-hide">
               <Map />
@@ -332,7 +260,7 @@ const [showTeamBuilder, setShowTeamBuilder] = useState(false);
           `}</style>
         </div>
       </main>
-    </div>
+    </ChatLayout>
   );
 };
 

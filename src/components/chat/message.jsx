@@ -99,7 +99,7 @@ const MessageList = ({ messages, username, currentUserId, onDeleteMessage }) => 
       >
         {msg.content && (
           <div>
-            <p className="text-sm max-w-full text-[#333] leading-relaxed whitespace-pre-wrap" style={{ overflowWrap: 'anywhere', wordBreak: 'normal' }}>
+            <p className="text-sm w-auto text-[#333] leading-relaxed whitespace-pre-wrap" style={{ overflowWrap: 'anywhere', wordBreak: 'normal' }}>
               {msg.content}
             </p>
           </div>
