@@ -39,7 +39,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="flex h-screen bg-[#F8F6FC] font-poppins">
+    <div className="flex h-screen bg-[#F8F6FC] font-poppins hide-scrollbar ">
       <Sidebar 
         activeSection={activeSection} 
         setActiveSection={setActiveSection}
@@ -56,7 +56,7 @@ const Dashboard = () => {
           "create team": "Create Team",
           profile: "Profile Settings",
         }[activeSection] || "Dashboard"} />
-        <main className="flex-1 p-8 overflow-y-auto relative bg-[#FEFEFE]">
+        <main className="flex-1  overflow-y-auto relative bg-[#FEFEFE]">
           {renderSection()}
           <div
             className="absolute inset-0 w-full h-full bg-no-repeat bg-bottom bg-contain opacity-80 pointer-events-none"

@@ -57,7 +57,7 @@ const CreateWorkspaceModal = ({ isOpen, onClose }) => {
   return (
     <>
       <div
-        className="w-[772px] relative"
+        className="w-[772px] relative "
         style={{
           borderRadius: "16px",
           background: "#EFE7F6",
@@ -83,10 +83,14 @@ const CreateWorkspaceModal = ({ isOpen, onClose }) => {
             <input
               type="text"
               value={workspaceName}
+              maxLength={20}
               onChange={(e) => setWorkspaceName(e.target.value)}
               placeholder="e.g. Design Studio, Growth Team, Marketing Hub"
               className="border border-[#BFA2E1] rounded-lg px-4 py-3 w-full focus:outline-none focus:border-[#5E9BFF] focus:ring-2 focus:ring-[#5E9BFF]/20 text-[#585858] bg-[#EFE7F6]"
             />
+            <p className="text-sm text-gray-500 mt-1">
+    {workspaceName.length}/20 characters
+  </p>
           </div>
           <div className="mb-8">
             <label className="block text-[24px] font-medium mb-3 text-black">
